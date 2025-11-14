@@ -3,7 +3,7 @@ import NodeCard from '@/components/monitoring/NodeCard';
 import LoginNodeCard from '@/components/dashboard/LoginNodeCard';
 import { useClientMounted } from '@/hooks/useClientMounted';
 import SlurmQueueTable from '@/components/dashboard/SlurmQueueTable';
-import  { mutate } from 'swr';
+import { mutate } from 'swr';
 import { ClusterState, useCluster } from '@/context/ClusterContext';
 
 export default function RessourcesPage() {
@@ -61,77 +61,77 @@ export default function RessourcesPage() {
       </div>
 
       {/* --- 3. Storage Section --- */}
-<div className="p-4 bg-gray-900 rounded-lg shadow-md border border-gray-700">
-  <h2 className="text-2xl font-semibold text-white mb-4">Storage</h2>
+      <div className="p-4 bg-gray-900 rounded-lg shadow-md border border-gray-700">
+        <h2 className="text-2xl font-semibold text-white mb-4">Storage</h2>
 
-  {/* Filesystem Volumes */}
-  <h3 className="text-lg font-semibold text-white mb-3">Filesystem Volumes</h3>
-  <div className="flex gap-4 mb-6">
-    {clusterState.storage.map((volume) => (
-      <div key={volume.mount_point} className="flex-1">
-        {/* Volume label */}
-        <div className="flex justify-between mb-1 text-sm text-gray-300">
-          <span>{volume.mount_point}</span>
-          <span>{volume.usage_percent}% of {volume.total_tib} TiB</span>
+        {/* Filesystem Volumes */}
+        <h3 className="text-lg font-semibold text-white mb-3">Filesystem Volumes</h3>
+        <div className="flex gap-4 mb-6">
+          {clusterState.storage.map((volume) => (
+            <div key={volume.mount_point} className="flex-1">
+              {/* Volume label */}
+              <div className="flex justify-between mb-1 text-sm text-gray-300">
+                <span>{volume.mount_point}</span>
+                <span>{volume.usage_percent}% of {volume.total_tib} TiB</span>
+              </div>
+
+              {/* Animated usage bar */}
+              <div
+                className="w-full h-3 bg-gray-800 rounded-lg overflow-hidden relative cursor-pointer"
+                onClick={() => {
+                  setSelectedVolume(volume.mount_point);
+                  fetchUserStorage(volume.mount_point);
+                }}
+              >
+                <div
+                  className="h-full bg-yellow-400 transition-all duration-1000 ease-out"
+                  style={{ width: `${volume.usage_percent}%` }}
+                ></div>
+              </div>
+            </div>
+          ))}
         </div>
 
-        {/* Animated usage bar */}
-        <div
-          className="w-full h-3 bg-gray-800 rounded-lg overflow-hidden relative cursor-pointer"
-          onClick={() => {
-            setSelectedVolume(volume.mount_point);
-            fetchUserStorage(volume.mount_point);
-          }}
-        >
-          <div
-            className="h-full bg-yellow-400 transition-all duration-1000 ease-out"
-            style={{ width: `${volume.usage_percent}%` }}
-          ></div>
-        </div>
+        {/* User Storage Table / Permission Message */}
+        {selectedVolume && (
+          <div className="mt-4">
+            {(selectedVolume === '/home' || selectedVolume === '/windows-home') ? (
+              <p className="text-red-400">
+                {/* [FIX] Changed "don't" to "don&apos;t" to fix ESLint error */}
+                You don&apos;t have permission to access individual user storage for {selectedVolume}.
+              </p>
+            ) : clusterState.user_storage?.length ? (
+              <div className="max-h-96 overflow-y-auto border border-gray-700 rounded-lg p-4 bg-gray-900">
+                <h3 className="text-lg font-semibold text-white mb-3">
+                  User Storage: {selectedVolume}
+                </h3>
+                <table className="min-w-full divide-y divide-gray-700">
+                  <thead className="bg-gray-800">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-300">Username</th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-300">Used Storage (GiB)</th>
+                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-300">Total Files</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-gray-900 divide-y divide-gray-800">
+                    {clusterState.user_storage
+                      .filter((u) => u.mount_point === selectedVolume)
+                      .map((user) => (
+                        <tr key={user.username} className="hover:bg-gray-800">
+                          <td className="px-4 py-2 text-cyan-300">{user.username}</td>
+                          <td className="px-4 py-2">{user.used_storage_space_gb.toFixed(2)}</td>
+                          <td className="px-4 py-2">{user.total_files.toLocaleString()}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-gray-400">No user storage data available for this volume.</p>
+            )}
+          </div>
+        )}
       </div>
-    ))}
-  </div>
-
-  {/* User Storage Table / Permission Message */}
-  {selectedVolume && (
-    <div className="mt-4">
-      {(selectedVolume === '/home' || selectedVolume === '/windows-home') ? (
-        <p className="text-red-400">
-          {/* [FIX] Changed "don't" to "don&apos;t" to fix ESLint error */}
-          You don&apos;t have permission to access individual user storage for {selectedVolume}.
-        </p>
-      ) : clusterState.user_storage?.length ? (
-        <div className="max-h-96 overflow-y-auto border border-gray-700 rounded-lg p-4 bg-gray-900">
-          <h3 className="text-lg font-semibold text-white mb-3">
-            User Storage: {selectedVolume}
-          </h3>
-          <table className="min-w-full divide-y divide-gray-700">
-            <thead className="bg-gray-800">
-              <tr>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-300">Username</th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-300">Used Storage (GiB)</th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-300">Total Files</th>
-              </tr>
-            </thead>
-            <tbody className="bg-gray-900 divide-y divide-gray-800">
-              {clusterState.user_storage
-                .filter((u) => u.mount_point === selectedVolume)
-                .map((user) => (
-                  <tr key={user.username} className="hover:bg-gray-800">
-                    <td className="px-4 py-2 text-cyan-300">{user.username}</td>
-                    <td className="px-4 py-2">{user.used_storage_space_gb.toFixed(2)}</td>
-                    <td className="px-4 py-2">{user.total_files.toLocaleString()}</td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <p className="text-gray-400">No user storage data available for this volume.</p>
-      )}
-    </div>
-  )}
-</div>
 
     </div>
   );
