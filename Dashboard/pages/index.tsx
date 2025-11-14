@@ -3,7 +3,7 @@ import NodeCard from '@/components/monitoring/NodeCard';
 import LoginNodeCard from '@/components/dashboard/LoginNodeCard';
 import { useClientMounted } from '@/hooks/useClientMounted';
 import SlurmQueueTable from '@/components/dashboard/SlurmQueueTable';
-import useSWR, { mutate } from 'swr';
+import  { mutate } from 'swr';
 import { ClusterState, useCluster } from '@/context/ClusterContext';
 
 export default function RessourcesPage() {
@@ -97,7 +97,8 @@ export default function RessourcesPage() {
     <div className="mt-4">
       {(selectedVolume === '/home' || selectedVolume === '/windows-home') ? (
         <p className="text-red-400">
-          You don't have permission to access individual user storage for {selectedVolume}.
+          {/* [FIX] Changed "don't" to "don&apos;t" to fix ESLint error */}
+          You don&apos;t have permission to access individual user storage for {selectedVolume}.
         </p>
       ) : clusterState.user_storage?.length ? (
         <div className="max-h-96 overflow-y-auto border border-gray-700 rounded-lg p-4 bg-gray-900">

@@ -37,6 +37,15 @@ interface UserStorage {
   mount_point: string;
 }
 
+// [FIX] This interface defines the raw JSON data from the SSH command
+// This fixes the "Unexpected any" ESLint error.
+interface RawUserStorageData {
+  username: string;
+  used: string;
+  files: number;
+}
+
+
 // --- Commands ---
 const SLURM_CMD = `sinfo -o "%.12P %.5C %.5a %.5I %.10m %.6G" --noheader`;
 const STORAGE_CMD = "df -hT | grep -E 'ceph|nfs|/scratch'";
@@ -57,7 +66,7 @@ async function pollSlurmData(
       host: node.host,
       port: node.port,
       username: node.user,
-      privateKey: privateKey
+      privateKey: privateKey,
     });
 
     const slurmResult = await ssh.execCommand(SLURM_CMD);
@@ -129,7 +138,7 @@ async function pollStorageData(
       host: node.host,
       port: node.port,
       username: node.user,
-      privateKey: privateKey
+      privateKey: privateKey,
     });
 
     const storageResult = await ssh.execCommand(STORAGE_CMD);
@@ -171,7 +180,7 @@ async function pollUserStorageData(
       host: node.host,
       port: node.port,
       username: node.user,
-      privateKey: privateKey
+      privateKey: privateKey,
     });
 
     // Directories to check
@@ -188,7 +197,8 @@ async function pollUserStorageData(
       const result = await ssh.execCommand(command);
       if (!result.stdout) continue;
 
-      const rawData = JSON.parse(result.stdout.trim());
+      // Use our new interface instead of 'any'
+      const rawData: RawUserStorageData[] = JSON.parse(result.stdout.trim());
 
       function convertToGB(sizeStr: string): number {
         const size = parseFloat(sizeStr);
@@ -199,7 +209,7 @@ async function pollUserStorageData(
       }
 
       allData.push(
-        ...rawData.map((u: any) => ({
+        ...rawData.map((u: RawUserStorageData) => ({ // Use the specific type
           username: u.username,
           used_storage_space_gb: convertToGB(u.used),
           total_files: u.files,
@@ -239,6 +249,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log("[cluster-state handler] Successfully loaded private key.");
 
     // 2. Read the config file
+    // This uses the '../config' path from your previous logs
     const nodesPath = path.join(process.cwd(), '../config/nodes.yaml');
     console.log(`[cluster-state handler] Reading nodes config from: ${nodesPath}`);
     nodesConfig = yaml.load(fs.readFileSync(nodesPath, 'utf8')) as { nodes: NodeConfig[] };

@@ -1,15 +1,6 @@
 import React from 'react';
 import { useCluster } from '@/context/ClusterContext';
 
-// 1. 🧠 Define the type for the data
-//    This matches the 'UserStorage' interface in your ClusterContext.tsx
-interface UserStorage {
-  username: string;
-  used_storage_space_gb: number;
-  total_files: number;
-}
-
-const FILE_COUNT_FORMATTER = new Intl.NumberFormat('en-US');
 
 export default function UserStorageTable() {
   const { userStorage } = useCluster();
