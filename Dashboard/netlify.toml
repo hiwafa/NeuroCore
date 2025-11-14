@@ -1,7 +1,6 @@
 [build]
-  base    = "Dashboard"  # folder with package.json and pages/
+  base    = "Dashboard"
   command = "npm run build"
-  publish = ".netlify"
-
+  
 [[plugins]]
   package = "@netlify/plugin-nextjs"
