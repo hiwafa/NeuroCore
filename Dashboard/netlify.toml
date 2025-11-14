@@ -1,0 +1,7 @@
+[build]
+  base    = "Dashboard"
+  command = "npm run build"
+  publish = "Dashboard/.netlify" # plugin will manage output; leave as plugin docs suggest if different
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
